@@ -17,8 +17,10 @@ get_current_time() {
 }
 
 start_time=$(get_current_time)
-kubectl scale --replicas=$REPLICAS deployment $DEPLOYMENT -n default
-kubectl wait --for=condition=Ready pod -l app=$DEPLOYMENT --timeout=60s 
+# kubectl scale --replicas=$REPLICAS deployment $DEPLOYMENT -n default
+kubectl patch spinapp $DEPLOYMENT -p "{\"spec\":{\"replicas\":$REPLICAS}}" --type=merge
+# kubectl wait --for=condition=Ready pod -l app=$DEPLOYMENT --timeout=60s 
+kubectl wait --for=condition=Available deployment $DEPLOYMENT --timeout=60s 
 end_time=$(get_current_time)
 duration=$((end_time - start_time))
 echo "Scaling deployment $DEPLOYMENT to $REPLICAS replicas took $duration ms." >> scale.log

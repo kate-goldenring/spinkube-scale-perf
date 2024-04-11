@@ -1,0 +1,18 @@
+spin_manifest_version = 2
+
+[application]
+authors = ["Kate Goldenring <kate.goldenring@fermyon.com>"]
+description = ""
+name = "hashjs"
+version = "0.1.0"
+
+[[trigger.http]]
+route = "/..."
+component = "hashjs"
+
+[component.hashjs]
+source = "target/hashjs.wasm"
+exclude_files = ["**/node_modules"]
+[component.hashjs.build]
+command = "npm run build"
+watch = ["src/**/*.js", "package.json"]

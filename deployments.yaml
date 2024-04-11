@@ -1,0 +1,276 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spin-in-container
+  labels:
+    app: spin-in-container
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: spin-in-container
+  template:
+    metadata:
+      labels:
+        app: spin-in-container
+    spec:
+      containers:
+      - name: spin-in-container
+        image: ghcr.io/kate-goldenring/spin-in-container:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-in-container
+spec:
+  selector:
+    app: spin-in-container
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spin-wasm-shim
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: spin-wasm-shim
+  template:
+    metadata:
+      labels:
+        app: spin-wasm-shim
+    spec:
+      runtimeClassName: wasmtime-spin-v2
+      containers:
+      - name: spin-wasm-shim
+        image: ghcr.io/kate-goldenring/hello-spin:v2
+        imagePullPolicy: IfNotPresent
+        command: ["/"]
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spin-wasm-shim
+spec:
+  selector:
+    app: spin-wasm-shim
+  ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gohash-wasm
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: gohash-wasm
+  template:
+    metadata:
+      labels:
+        app: gohash-wasm
+    spec:
+      runtimeClassName: wasmtime-spin-v2
+      containers:
+      - name: gohash-wasm
+        image: ghcr.io/kate-goldenring/gohash:v2
+        imagePullPolicy: IfNotPresent
+        command: ["/"]
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 1
+          periodSeconds: 10
+        # resources:
+        #   limits:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gohash-wasm
+spec:
+  selector:
+    app: gohash-wasm
+  ports:
+    - protocol: TCP
+      port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gohash-containerized
+  labels:
+    app: gohash-containerized
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: gohash-containerized
+  template:
+    metadata:
+      labels:
+        app: gohash-containerized
+    spec:
+      containers:
+      - name: gohash-containerized
+        image: ghcr.io/kate-goldenring/gohash-container:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 1
+          periodSeconds: 10
+        # resources:
+        #   limits:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gohash-containerized
+spec:
+  selector:
+    app: gohash-containerized
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jshash-wasm
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: jshash-wasm
+  template:
+    metadata:
+      labels:
+        app: jshash-wasm
+    spec:
+      runtimeClassName: wasmtime-spin-v2
+      containers:
+      - name: jshash-wasm
+        image: ghcr.io/kate-goldenring/jshash:v1
+        imagePullPolicy: IfNotPresent
+        command: ["/"]
+        ports:
+        - containerPort: 80
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 80
+        #   initialDelaySeconds: 1
+        #   periodSeconds: 10
+        # resources:
+        #   limits:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jshash-wasm
+spec:
+  selector:
+    app: jshash-wasm
+  ports:
+    - protocol: TCP
+      port: 80
+# ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jshash-containerized
+  labels:
+    app: jshash-containerized
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: jshash-containerized
+  template:
+    metadata:
+      labels:
+        app: jshash-containerized
+    spec:
+      containers:
+      - name: jshash-containerized
+        image: ghcr.io/kate-goldenring/jshash-containerized:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 3000
+        #   initialDelaySeconds: 1
+        #   periodSeconds: 10
+        # resources:
+        #   limits:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jshash-containerized
+spec:
+  selector:
+    app: jshash-containerized
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

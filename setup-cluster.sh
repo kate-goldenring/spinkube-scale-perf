@@ -9,6 +9,9 @@ sudo snap install microk8s --classic
 microk8s status --wait-ready
 microk8s enable dns helm3 rbac
 
+microk8s config > $HOME/.kube/config
+export KUBECONFIG=$HOME/.kube/config
+
 alias kubectl='microk8s kubectl'
 alias helm='microk8s helm3'
 
@@ -44,9 +47,6 @@ helm install \
   --namespace kwasm \
   --create-namespace \
   --set "kwasmOperator.installerImage=ghcr.io/spinkube/containerd-shim-spin/node-installer:$SHIM_VERSION"
-
-# Re-export kubeconfig as kwasm operator may restart the process 
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
 # Provision Nodes
 kubectl annotate node --all kwasm.sh/kwasm-node=true
