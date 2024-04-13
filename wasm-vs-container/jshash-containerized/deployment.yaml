@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jshash-containerized
+  labels:
+    app: jshash-containerized
+spec:
+  replicas: 1
+  # strategy:
+  #   rollingUpdate:
+  #     maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: jshash-containerized
+  template:
+    metadata:
+      labels:
+        app: jshash-containerized
+    spec:
+      containers:
+      - name: jshash-containerized
+        image: ttl.sh/hashjs-express:5h
+        # imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jshash-containerized
+spec:
+  selector:
+    app: jshash-containerized
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

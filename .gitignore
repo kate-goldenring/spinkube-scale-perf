@@ -1,3 +1,4 @@
 **/target/
 **/.spin/
 scale.log
+**/node_modules
